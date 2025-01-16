@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ПОТУЖНОМЕТР</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: #f4f4f9;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+
+        .meter {
+            width: 80%;
+            height: 30px;
+            margin: 20px auto;
+            background: #ccc;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .meter-fill {
+            height: 100%;
+            width: 0;
+            background: green;
+            transition: width 0.3s, background 0.3s;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            font-size: 18px;
+            margin: 10px;
+            border: none;
+            cursor: pointer;
+            border-radius: 10px;
+            width: 120px;
+        }
+
+        .start {
+            background-color: #4caf50;
+            color: white;
+        }
+
+        .stop {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .comment {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 20px;
+            word-wrap: break-word;
+            padding: 0 10px;
+        }
+
+        /* Адаптивний дизайн */
+        @media (max-width: 600px) {
+            .meter {
+                width: 90%;
+                height: 40px;
+            }
+
+            .btn {
+                font-size: 16px;
+                padding: 12px 25px;
+                width: 100px;
+            }
+
+            h1 {
+                font-size: 1.2em;
+            }
+
+            .comment {
+                font-size: 16px;
+                padding: 0 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>ПОТУЖНОМЕТР</h1>
+    <div class="meter">
+        <div class="meter-fill" id="meterFill"></div>
+    </div>
+    <div class="controls">
+        <button class="btn start" onclick="startListening()">Почати</button>
+        <button class="btn stop" onclick="stopListening()">Зупинити</button>
+    </div>
+    <div class="comment" id="comment"></div>
+
+    <script>
+        let recognition;
+        let isListening = false;
+        const meterFill = document.getElementById('meterFill');
+        const comment = document.getElementById('comment');
+        let timeout;
+        let silenceTimeout;
+
+        // Initialize Speech Recognition
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = true;
+            recognition.lang = 'uk-UA';
+
+            recognition.onresult = (event) => {
+                // Обробляємо тільки останній фінальний результат
+                const words = event.results[event.resultIndex][0].transcript.toLowerCase();
+
+                const powerCount = (words.match(/потужно|потужність/g) || []).length;
+                updateMeter(powerCount);
+
+                // Reset timeout each time there's new speech input
+                clearTimeout(silenceTimeout);
+                silenceTimeout = setTimeout(() => {
+                    comment.innerText = "Ти не потужний, вас було мобілізовано.";  // No speech for 5 seconds
+                }, 5000);  // Reset if no speech for 5 seconds
+            };
+
+            recognition.onerror = (event) => {
+                alert(`Помилка розпізнавання: ${event.error}`);
+            };
+        } else {
+            alert('Speech recognition is not supported in this browser. Please use Chrome.');
+        }
+
+        function startListening() {
+            if (isListening) return;
+            isListening = true;
+            recognition.start();
+            document.querySelector('.start').classList.add('active');
+            document.querySelector('.stop').classList.remove('active');
+        }
+
+        function stopListening() {
+            if (!isListening) return;
+            isListening = false;
+            recognition.stop();
+            document.querySelector('.stop').classList.add('active');
+            document.querySelector('.start').classList.remove('active');
+            clearTimeout(silenceTimeout);
+        }
+
+        function updateMeter(powerCount) {
+            let percentage = Math.min(powerCount * 20, 80); // Max 80%
+            meterFill.style.width = percentage + '%';
+
+            // Ensure the scale is visible even for the first level
+            if (percentage === 0) {
+                meterFill.style.width = '5%';  // Set a minimal value for the first level
+            }
+
+            if (percentage < 40) {
+                meterFill.style.background = 'green';
+                comment.innerText = "Перший рівень малувато потужності.";
+            } else if (percentage < 70) {
+                meterFill.style.background = 'orange';
+                comment.innerText = "Ви потужний, Зеленський гордиться вами!";
+            } else {
+                meterFill.style.background = 'red';
+                comment.innerText = "Я їбав, у мене так потужнометр роспідарасило, тупо нахуй пісюни по стінкам, сусіди подумали кабом уїбало по дому, але ото я охуїв!";
+            }
+        }
+
+        function resetMeter() {
+            meterFill.style.width = '0%';
+            meterFill.style.background = 'green';
+            comment.innerText = '';
+        }
+    </script>
+</body>
+</html>
