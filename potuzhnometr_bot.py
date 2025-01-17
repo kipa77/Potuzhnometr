@@ -2,7 +2,7 @@ import asyncio
 from aiogram import Bot, Dispatcher, types, executor
 from aiogram.types.web_app_info import WebAppInfo
 
-bot = Bot('7243122835:AAGgYp2mNsUlzfmenXa-KF9QiS-xKIZwkww')
+bot = Bot('bot_api')
 
 
 dp = Dispatcher(bot)
