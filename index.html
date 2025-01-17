@@ -134,7 +134,7 @@
                 // Reset timeout each time there's new speech input
                 clearTimeout(silenceTimeout);
                 silenceTimeout = setTimeout(() => {
-                    comment.innerText = "Ти не потужний, вас було мобілізовано.";  // No speech for 5 seconds
+                    comment.innerText = "Ти не потужний, вас було мобілізовано."; resetMeter(); // No speech for 5 seconds
                 }, 5000);  // Reset if no speech for 5 seconds
             };
 
@@ -163,7 +163,7 @@
         }
 
         function updateMeter(powerCount) {
-            let percentage = Math.min(powerCount * 20, 80); // Max 80%
+            let percentage = Math.min(powerCount * 20, 100); // Max 80%
             meterFill.style.width = percentage + '%';
 
             // Ensure the scale is visible even for the first level
